@@ -27,7 +27,7 @@ df['Year'] = pd.to_datetime(df['Year'], format='%Y')
 hamilton_coords = (43.2557, -79.8711)
 
 # Streamlit app
-st.title("Climate Analysis and Hamilton Map")
+st.title("Climate Analysis of Hamilton")
 
 # Provide some key insights about the data with styling
 st.markdown("<div style='color: #008080; font-size: 16px; font-weight: bold;'>1. The average maximum temperature in Hamilton is around {}°C.</div>".format(round(df['Max Temp (Historical)'].mean(), 2)), unsafe_allow_html=True)
