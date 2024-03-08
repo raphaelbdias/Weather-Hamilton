@@ -10,6 +10,7 @@ kiwisolver==1.4.5
 Markdown==3.0.0
 matplotlib==3.8.3
 numpy==1.26.4
+openpyxl
 pandas==2.2.1
 plotly==5.5.0
 protobuf==4.25.3
