@@ -12,26 +12,77 @@ import plotly.express as px
 import json
 
 
-tab1, tab2, tab3, tab4 = st.tabs(
-    ["Overview", "Weather Analysis", "Facilities in Hamilton", "Facility Information"]
+# Create tabs
+tabs = ["Overview", "Weather Analysis", "Facilities in Hamilton", "Facility Information"]
+
+# Add some styling to the sidebar
+st.sidebar.markdown(
+    """
+    <style>
+        .sidebar .widget-title {
+            color: #33adff;
+            text-align: center;
+            padding: 15px 0;
+            font-size: 24px;
+            font-weight: bold;
+        }
+        .sidebar .radio-item {
+            padding: 10px;
+            margin: 5px 0;
+            background-color: #f0f0f0;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .sidebar .radio-item:hover {
+            background-color: #e0e0e0;
+        }
+        .sidebar .radio-item:checked {
+            background-color: #33adff;
+            color: white;
+        }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+st.sidebar.title("Navigation")
+selected_tab = st.sidebar.radio('',tabs)
+# About section
+st.sidebar.header("About")
+st.sidebar.info("This app analyzes and visualizes climate data of Hamilton.")
+
+api_url = "https://services.arcgis.com/rYz782eMbySr2srL/arcgis/rest/services/Ward_Boundaries/FeatureServer/7/query?outFields=*&where=1%3D1&f=geojson"
+response = requests.get(api_url).json()
+
+# Hamilton's geographical coordinates
+hamilton_coords = (43.2557, -79.8711)
+
+df = pd.read_excel("Hamilton_Climate_Summary.xlsx")
+df["Year"] = pd.to_datetime(df["Year"], format="%Y")
+
+asset_data = pd.read_excel("data_20240308_combined_v2.xlsx", sheet_name="raw")
+asset_data["Maintenance Types"] = asset_data["Maintenance Types"].apply(
+    lambda x: x.split(", ")
+)
+asset_data["Weather Condition"] = asset_data["Weather Condition"].apply(
+    lambda x: x.split(", ")
 )
 
-with tab1:
-    # Sample data (replace this with your actual data)
-    # Fetch data from the API
-    # Fetch data from the API
-    api_url = "https://services.arcgis.com/rYz782eMbySr2srL/arcgis/rest/services/Ward_Boundaries/FeatureServer/7/query?outFields=*&where=1%3D1&f=geojson"
-    response = requests.get(api_url).json()
+# Convert 'Asset Date Built' to datetime format
+asset_data["Asset Date Built"] = pd.to_datetime(asset_data["Asset Date Built"])
 
-    # Hamilton's geographical coordinates
-    hamilton_coords = (43.2557, -79.8711)
+# Calculate the current age
+current_date = dt.now()
+asset_data["Asset Age"] = current_date - asset_data["Asset Date Built"]
 
-    df = pd.read_excel("Hamilton_Climate_Summary.xlsx")
-    df["Year"] = pd.to_datetime(df["Year"], format="%Y")
+# Extract the age in years, days, etc.
+asset_data["Asset Age Years"] = asset_data["Asset Age"].dt.days // 365
+asset_data["Asset Date Built"] = asset_data["Asset Date Built"].apply(
+    lambda x: str(x)
+    )
 
-    # Hamilton's geographical coordinates
-    hamilton_coords = (43.2557, -79.8711)
-
+# Display content based on the selected tab
+if selected_tab == "Overview":
     # Streamlit app
     st.title("Climate Analysis of Hamilton")
 
@@ -56,25 +107,22 @@ with tab1:
     folium.GeoJson(
         api_url,
         style_function=lambda feature: {
-            "fillColor": "#ffff00",
+            "fillColor": "#008080",
             "color": "black",
             "weight": 2,
             "dashArray": "5, 5",
-            "fillOpacity": 0.1,
+            "fillOpacity": 0.4,
         },
     ).add_to(m)
     folium_static(m)
 
     # Navigation bar
-    nav_choice = st.sidebar.radio("Navigation", ["Summary Statistics", "Raw Data"])
+    # nav_choice = st.sidebar.radio("Navigation", ["Summary Statistics", "Raw Data"])
 
     # Display content based on user's choice
-    if nav_choice == "Summary Statistics":
-        st.subheader("Summary Statistics")
-        st.write(df.describe())
-    else:  # Assume "Raw Data" as the default choice
-        st.subheader("Raw Data")
-        st.write(df)
+    st.subheader("Summary Statistics")
+    st.write(df.describe())
+
 
     # Data analysis and visualization
     st.subheader("Data Analysis and Visualization")
@@ -139,11 +187,7 @@ with tab1:
 
     st.plotly_chart(fig, use_container_width=True)
 
-    # About section
-    st.sidebar.header("About")
-    st.sidebar.info("This app analyzes and visualizes climate data of Hamilton.")
-
-with tab2:
+elif selected_tab == "Weather Analysis":
     # Load the data
     data = pd.read_excel("Municipality Hamilton_Analysis.xlsx", sheet_name="RCP 8.5")
 
@@ -247,27 +291,8 @@ with tab2:
     )
 # Additional analysis or visualizations can be added based on your requirements
 
-with tab3:
-    asset_data = pd.read_excel("data_20240308_combined_v2.xlsx", sheet_name="raw")
-    asset_data["Maintenance Types"] = asset_data["Maintenance Types"].apply(
-        lambda x: x.split(", ")
-    )
-    asset_data["Weather Condition"] = asset_data["Weather Condition"].apply(
-        lambda x: x.split(", ")
-    )
-
-    # Convert 'Asset Date Built' to datetime format
-    asset_data["Asset Date Built"] = pd.to_datetime(asset_data["Asset Date Built"])
-
-    # Calculate the current age
-    current_date = dt.now()
-    asset_data["Asset Age"] = current_date - asset_data["Asset Date Built"]
-
-    # Extract the age in years, days, etc.
-    asset_data["Asset Age Years"] = asset_data["Asset Age"].dt.days // 365
-    asset_data["Asset Date Built"] = asset_data["Asset Date Built"].apply(
-        lambda x: str(x)
-    )
+elif selected_tab == "Facilities in Hamilton":
+    st.title("Facilities in Hamilton")
 
     # asset_data = df_3.to_dict(orient='records')
 
@@ -320,17 +345,19 @@ with tab3:
     st.subheader("Asset Locations in Hamilton")
     folium_static(m)
 
-with tab4:
+elif selected_tab == "Facility Information":
+    
+    st.title("Facility Information")
     # Custom CSS styles
     custom_styles = """
     <style>
         .facility-info {
-            background-color: #f0f0f0;
+            background-color: #262730;
             padding: 15px;
-            border: 2px solid #d3d3d3;
+            border: 2px solid #262730;
             border-radius: 10px;
             margin-top: 20px;
-            color:#000;
+            color:#ffffff;
         }
 
         .facility-info strong {
@@ -339,19 +366,23 @@ with tab4:
             font-weight: bold;
         }
 
-        .facility-info h2 {
+        .facility-info h1 {
             display: block;
             margin-bottom: 8px;
             font-weight: bold;
         }
 
-        .change-positive {
-            color: green;
+        .facility-info i.fas.fa-arrow-up {
+        color: green;
         }
 
-        .change-negative {
-            color: red;
+        .facility-info i.fas.fa-arrow-down {
+        color: #9b111e;
         }
+
+        .facility-info i.fas.fa-minus {
+        color: grey;
+}
     </style>
     """
 
@@ -366,7 +397,21 @@ with tab4:
 
     # Display the information for the selected facility
     if not selected_facility_data.empty:
-        st.title(f"Facility Information: {selected_facility.capitalize()}")
+        st.write(f"<h2 style='color: #008080; font-weight: bold;'>{selected_facility.title()}</h2>", unsafe_allow_html=True)
+        m = folium.Map(location=(selected_facility_data['Latitude'], selected_facility_data['Longitude']), zoom_start=14, )
+        folium.CircleMarker(
+            location=(selected_facility_data['Latitude'], selected_facility_data['Longitude']),
+            radius=20,
+            color='#008080',
+            fill=True,
+            fill_color='#008080',
+            fill_opacity=0.6,
+            popup=selected_facility_data['Full_Address'].iloc[0]
+        ).add_to(m)
+
+
+        # Display the map
+        folium_static(m)
 
         # Calculate change from last year
         fci_change = (
@@ -378,12 +423,13 @@ with tab4:
         # Display basic information
         st.markdown(f"""
                     <div class='facility-info'> FCI 2024
-                        <h2>{round(selected_facility_data['2023 FCI Rating'].iloc[0]*100,2)}%</h2>
-                        <strong class='{change_class}'>Change from Last Year: {fci_change:.2f}%</strong>
+                        <h1>{round(selected_facility_data['2023 FCI Rating'].iloc[0]*100,2)}%</h1>
+                        <strong>Change from Last Year:<i style='color: {'green' if fci_change < 0 else 'red'};'> {fci_change:.2f}%</i></strong>
                         <strong>Address: {selected_facility_data['Asset Address'].iloc[0]}</strong> 
                         <strong>Size: {selected_facility_data['Asset Size'].iloc[0]} {selected_facility_data['Asset Measure Unit'].iloc[0]}</strong>
-                        <strong>Age: {selected_facility_data['Asset Age Years'].iloc[0]} years</strong>
+                        <strong>{int(selected_facility_data['Asset Age Years'].iloc[0])} years old</strong>
                     </div>""", 
                     unsafe_allow_html=True)
+        
     else:
         st.warning("Please select a facility from the dropdown.")
