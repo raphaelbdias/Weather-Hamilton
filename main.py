@@ -8,9 +8,10 @@ from folium.plugins import MarkerCluster
 from streamlit_folium import folium_static
 import plotly.graph_objects as go
 import plotly.express as px
+import json
 
 
-tab1, tab2 = st.tabs(["Overview", "Analysis"])
+tab1, tab2, tab3, tab4 = st.tabs(["Overview", "Weather Analysis", "Facilities in Hamilton", "Facility Information"])
 
 with tab1:
     # Sample data (replace this with your actual data)
@@ -176,3 +177,119 @@ with tab2:
     <ul>- Very cold days (below -30°C) will not be experienced as temperatures continue to rise.
     </div>""", unsafe_allow_html=True)
 # Additional analysis or visualizations can be added based on your requirements
+    
+with tab3:
+
+    asset_data = pd.read_excel('data_20240308_combined_v2.xlsx', sheet_name = 'raw')
+    asset_data['Maintenance Types'] = asset_data['Maintenance Types'].apply(lambda x: x.split(', '))
+    asset_data['Weather Condition'] = asset_data['Weather Condition'].apply(lambda x: x.split(', '))
+
+    # Convert 'Asset Date Built' to datetime format
+    asset_data['Asset Date Built'] = pd.to_datetime(asset_data['Asset Date Built'])
+
+    # Calculate the current age
+    current_date = dt.now()
+    asset_data['Asset Age'] = current_date - asset_data['Asset Date Built']
+
+    # Extract the age in years, days, etc.
+    asset_data['Asset Age Years'] = asset_data['Asset Age'].dt.days // 365
+    asset_data['Asset Date Built'] = asset_data['Asset Date Built'].apply(lambda x: str(x))
+
+    # asset_data = df_3.to_dict(orient='records')
+
+    # # Display raw data
+    # st.subheader("Asset Data")
+    # st.write(asset_data)
+
+    # Summary Statistics
+    st.subheader("Summary Statistics")
+    st.write(asset_data.describe())
+
+    # Visualizations
+    st.subheader("Data Visualizations")
+
+    # Create a horizontal bar chart using plotly
+    fig = px.bar(asset_data['Asset Type'].value_counts().reset_index(), 
+                x='count', y='Asset Type', orientation='h',
+                labels={'index': 'Asset Type', 'Asset Type': 'Count'},
+                title='Asset Types Count')
+
+    # Display the plot
+    st.plotly_chart(fig)
+
+
+    # Create a Folium map centered around Hamilton, Ontario
+
+    m = folium.Map(location=hamilton_coords, zoom_start=10, tiles = 'Cartodb Positron')
+
+    folium.GeoJson(api_url, style_function=lambda feature: {
+            "fillColor": "#ffff00",
+            "color": "black",
+            "weight": 1,
+            "dashArray": "5, 5",
+            "fillOpacity": 0.1
+        },).add_to(m)
+
+    # Add markers to the map
+    for index, row in asset_data.iterrows():
+        folium.CircleMarker(
+            location=[row['Latitude'], row['Longitude']],
+            radius = 1.6,
+            opacity=0.3
+        ).add_to(m)
+
+    # Display the map
+    st.subheader("Asset Locations in Hamilton")
+    folium_static(m)
+    
+with tab4:
+    # Custom CSS styles
+    custom_styles = """
+    <style>
+        .facility-info {
+            background-color: #f0f0f0;
+            padding: 10px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+        
+        .change-positive {
+            color: green;
+        }
+
+        .change-negative {
+            color: red;
+        }
+    </style>
+    """
+
+
+    # Display custom styles
+    st.markdown(custom_styles, unsafe_allow_html=True)
+
+    # Create a dropdown to select the facility
+    selected_facility = st.selectbox("Select Facility", asset_data['Asset Name'])
+
+    # Filter the data for the selected facility
+    selected_facility_data = asset_data[asset_data['Asset Name'] == selected_facility]
+
+    # Display the information for the selected facility
+    if not selected_facility_data.empty:
+        st.title(f"Facility Information: {selected_facility.capitalize()}")
+
+        # Display basic information
+        st.markdown("<div class='facility-info'>", unsafe_allow_html=True)
+        st.write(f"<strong>Address:</strong> {selected_facility_data['Asset Address'].iloc[0]}", unsafe_allow_html=True)
+        st.write(f"<strong>FCI for 2024:</strong> {selected_facility_data['2023 FCI Rating'].iloc[0]}", unsafe_allow_html=True)
+        
+        # Calculate change from last year
+        fci_change = selected_facility_data['Current FCI'].iloc[0] - selected_facility_data['2023 FCI Rating'].iloc[0]
+        change_class = "change-positive" if fci_change < 0 else "change-negative"
+        st.write(f"<strong class='{change_class}'>Change from Last Year:</strong> {fci_change:.2f}%", unsafe_allow_html=True)
+
+        # Display additional information
+        st.write(f"<strong>Size:</strong> {selected_facility_data['Asset Size'].iloc[0]} {selected_facility_data['Asset Measure Unit'].iloc[0]}", unsafe_allow_html=True)
+        st.write(f"<strong>Age:</strong> {selected_facility_data['Asset Age Years'].iloc[0]} years", unsafe_allow_html=True)
+        st.markdown("</div>", unsafe_allow_html=True)
+    else:
+        st.warning("Please select a facility from the dropdown.")
