@@ -13,7 +13,12 @@ import json
 
 
 # Create tabs
-tabs = ["Overview", "Weather Analysis", "Facilities in Hamilton", "Facility Information"]
+tabs = [
+    "Overview",
+    "Weather Analysis",
+    "Facilities in Hamilton",
+    "Facility Information",
+]
 
 # Add some styling to the sidebar
 st.sidebar.markdown(
@@ -46,7 +51,7 @@ st.sidebar.markdown(
     unsafe_allow_html=True,
 )
 st.sidebar.title("Navigation")
-selected_tab = st.sidebar.radio('',tabs)
+selected_tab = st.sidebar.radio("", tabs)
 # About section
 st.sidebar.header("About")
 st.sidebar.info("This app analyzes and visualizes climate data of Hamilton.")
@@ -77,9 +82,11 @@ asset_data["Asset Age"] = current_date - asset_data["Asset Date Built"]
 
 # Extract the age in years, days, etc.
 asset_data["Asset Age Years"] = asset_data["Asset Age"].dt.days // 365
-asset_data["Asset Date Built"] = asset_data["Asset Date Built"].apply(
-    lambda x: str(x)
-    )
+asset_data["Asset Date Built"] = asset_data["Asset Date Built"].apply(lambda x: str(x))
+
+###########################################################
+# Section 1#
+###########################################################
 
 # Display content based on the selected tab
 if selected_tab == "Overview":
@@ -122,7 +129,6 @@ if selected_tab == "Overview":
     # Display content based on user's choice
     st.subheader("Summary Statistics")
     st.write(df.describe())
-
 
     # Data analysis and visualization
     st.subheader("Data Analysis and Visualization")
@@ -187,6 +193,10 @@ if selected_tab == "Overview":
 
     st.plotly_chart(fig, use_container_width=True)
 
+###########################################################
+# Section 2#
+###########################################################
+
 elif selected_tab == "Weather Analysis":
     # Load the data
     data = pd.read_excel("Municipality Hamilton_Analysis.xlsx", sheet_name="RCP 8.5")
@@ -194,19 +204,12 @@ elif selected_tab == "Weather Analysis":
     # Sidebar
     st.title("Climate Forecast Analysis")
     st.markdown(
-        "<div style='color: #008080; font-size: 16px; font-weight: bold;'>Comparison of historical average (1976-2005) to the projected mean for 2021-2050 With GHG emissions continuing to increase at current rates (RCP 8.5).</div>",
+        """<div style='color: #008080; font-size: 16px; font-weight: bold;'>
+            Comparison of historical average (1976-2005) to the projected mean for 
+            2021-2050 With GHG emissions continuing to increase at current rates (RCP 8.5).
+        </div>""",
         unsafe_allow_html=True,
     )
-
-    # Create a selector for different variables
-    selected_variable = st.selectbox(
-        "Select Variable", ["Precipitation (mm)", "Mean Temperature (°C)"]
-    )
-
-    # Filter the data based on the selected variable and exclude 'annual'
-    filtered_data = data.loc[
-        (data["Variable"] == selected_variable) & (data["Period"] != "annual")
-    ]
 
     # Create a selector for different metrics (columns) within the selected variable
     selected_metric = st.selectbox(
@@ -221,35 +224,46 @@ elif selected_tab == "Weather Analysis":
         ],
     )
 
-    # Update blurbs based on selected variable
-    if selected_variable == "Precipitation (mm)":
+
+    # Create three columns
+    col1, col2, col3 = st.columns(3)
+
+    # Visualize the data using Streamlit's line chart in the first column
+    with col1:
+        # Filter data for Precipitation
+        precipitation_data = data.loc[
+            (data["Variable"] == "Precipitation (mm)") & (data["Period"] != "annual")
+        ]
+
+        # Filter data for Mean Temperature
+        temperature_data = data.loc[
+            (data["Variable"] == "Mean Temperature (°C)") & (data["Period"] != "annual")
+        ]
+
+        # Display blurbs based on selected variable
         st.markdown(
             """<div style='color: #008080; font-size: 16px; font-weight: bold;'>
-        Precipitation:
-        <ul> Overall, there is an increase in annual precipitation by 6.40% (54mm).
-        <ul> Winter (10.70%), Spring (10.60%), and Fall (4.04%) will be greatly affected, while Summer (0.92%) will experience a slight impact.
-        </div>""",
-            unsafe_allow_html=True,
-        )
-    elif selected_variable == "Mean Temperature (°C)":
-        st.markdown(
-            """<div style='color: #008080; font-size: 16px; font-weight: bold;'>
-        Mean Temperature:
-        <ul> The overall change in mean temperature has significantly increased annually by 25.30%. The annual mean temperature is expected to increase by 2.1°C.
-        <ul> Winter (58.97%), Spring (26.87%), and Fall (21.78%) are greatly affected, while Summer (10.41%) will experience the least impact.
-        </div>""",
+            Precipitation:
+            <ul> Overall, there is an increase in annual precipitation by 6.40% (54mm).
+            <ul> Winter (10.70%), Spring (10.60%), and Fall (4.04%) will be greatly affected, while Summer (0.92%) will experience a slight impact.
+            </div>""",
             unsafe_allow_html=True,
         )
 
-    # Display the filtered data
-    st.subheader(f"{selected_variable} Data")
-    st.write(filtered_data)
+        # Display the combined chart
+        st.subheader(f"Seasonal Precipitation and Mean Temperature - {selected_metric}")
+        st.line_chart(
+            {
+                "Precipitation": precipitation_data.set_index("Period")[selected_metric],
+                "Mean Temperature": temperature_data.set_index("Period")[selected_metric],
+            }
+        )
 
-    # Visualize the data using Streamlit's line chart
-    st.subheader(f"Seasonal {selected_variable} - {selected_metric}")
-    st.line_chart(filtered_data.set_index("Period")[selected_metric])
 
-    annual = pd.DataFrame(
+    # Visualize the annual using Plotly Express in the second column
+    with col2:
+        # Create a DataFrame for the annual bar chart
+        annual = pd.DataFrame(
         {
             "Variable": [
                 "Tropical Nights",
@@ -266,30 +280,47 @@ elif selected_tab == "Weather Analysis":
             "2051-2080 (High)": [61, 88, 0],
         }
     )
+        fig = px.bar(
+            annual,
+            x=selected_metric,
+            y="Variable",
+            title="Climate Metrics Over Time",
+            labels={"value": "Value", "variable": "Metric"},
+        )
+        st.subheader(f"Extreme Weather Overview")
+        st.plotly_chart(fig)
 
-    # Visualize the annual using Plotly Express
-    fig = px.bar(
-        annual,
-        x=selected_metric,
-        y="Variable",
-        title="Climate Metrics Over Time",
-        labels={"value": "Value", "variable": "Metric"},
-    )
+        st.markdown(
+            """<div style='color: #008080; font-size: 16px; font-weight: bold;'>
+        Extreme Weather:
+        <ul>- Tropical nights (nights with temperatures above 20°C) increase from 7 to 19.
+        <ul>- Very hot days (above 30°C) more than double from 16 to 37.
+        <ul>- Very cold days (below -30°C) will not be experienced as temperatures continue to rise.
+        </div>""",
+            unsafe_allow_html=True,
+        )
 
-    # Display the plot
-    st.subheader(f"Extreme Weather Overview")
-    st.plotly_chart(fig)
+    # Display the blurb for extreme weather in the third column
+    with col3:
+        filtered_data = data.loc[
+            (data["Variable"] == "Mean Temperature (°C)") & (data["Period"] != "annual")
+        ]
+        st.markdown(
+                """<div style='color: #008080; font-size: 16px; font-weight: bold;'>
+            Mean Temperature:
+            <ul> The overall change in mean temperature has significantly increased annually by 25.30%. The annual mean temperature is expected to increase by 2.1°C.
+            <ul> Winter (58.97%), Spring (26.87%), and Fall (21.78%) are greatly affected, while Summer (10.41%) will experience the least impact.
+            </div>""",
+                unsafe_allow_html=True,
+            )
+        st.subheader(f"Mean Temprature - {selected_metric}")
+        st.line_chart(filtered_data.set_index("Period")[selected_metric])
 
-    st.markdown(
-        """<div style='color: #008080; font-size: 16px; font-weight: bold;'>
-    Extreme Weather:
-    <ul>- Tropical nights (nights with temperatures above 20°C) increase from 7 to 19.
-    <ul>- Very hot days (above 30°C) more than double from 16 to 37.
-    <ul>- Very cold days (below -30°C) will not be experienced as temperatures continue to rise.
-    </div>""",
-        unsafe_allow_html=True,
-    )
 # Additional analysis or visualizations can be added based on your requirements
+
+###########################################################
+# Section 3#
+###########################################################
 
 elif selected_tab == "Facilities in Hamilton":
     st.title("Facilities in Hamilton")
@@ -345,8 +376,12 @@ elif selected_tab == "Facilities in Hamilton":
     st.subheader("Asset Locations in Hamilton")
     folium_static(m)
 
+
+###########################################################
+# Section 4#
+###########################################################
+
 elif selected_tab == "Facility Information":
-    
     st.title("Facility Information")
     # Custom CSS styles
     custom_styles = """
@@ -397,18 +432,29 @@ elif selected_tab == "Facility Information":
 
     # Display the information for the selected facility
     if not selected_facility_data.empty:
-        st.write(f"<h2 style='color: #008080; font-weight: bold;'>{selected_facility.title()}</h2>", unsafe_allow_html=True)
-        m = folium.Map(location=(selected_facility_data['Latitude'], selected_facility_data['Longitude']), zoom_start=14, )
+        st.write(
+            f"<h2 style='color: #008080; font-weight: bold;'>{selected_facility.title()}</h2>",
+            unsafe_allow_html=True,
+        )
+        m = folium.Map(
+            location=(
+                selected_facility_data["Latitude"],
+                selected_facility_data["Longitude"],
+            ),
+            zoom_start=14,
+        )
         folium.CircleMarker(
-            location=(selected_facility_data['Latitude'], selected_facility_data['Longitude']),
+            location=(
+                selected_facility_data["Latitude"],
+                selected_facility_data["Longitude"],
+            ),
             radius=20,
-            color='#008080',
+            color="#008080",
             fill=True,
-            fill_color='#008080',
+            fill_color="#008080",
             fill_opacity=0.6,
-            popup=selected_facility_data['Full_Address'].iloc[0]
+            popup=selected_facility_data["Full_Address"].iloc[0],
         ).add_to(m)
-
 
         # Display the map
         folium_static(m)
@@ -421,15 +467,17 @@ elif selected_tab == "Facility Information":
         change_class = "change-positive" if fci_change < 0 else "change-negative"
 
         # Display basic information
-        st.markdown(f"""
+        st.markdown(
+            f"""
                     <div class='facility-info'> FCI 2024
                         <h1>{round(selected_facility_data['2023 FCI Rating'].iloc[0]*100,2)}%</h1>
                         <strong>Change from Last Year:<i style='color: {'green' if fci_change < 0 else 'red'};'> {fci_change:.2f}%</i></strong>
                         <strong>Address: {selected_facility_data['Asset Address'].iloc[0]}</strong> 
                         <strong>Size: {selected_facility_data['Asset Size'].iloc[0]} {selected_facility_data['Asset Measure Unit'].iloc[0]}</strong>
                         <strong>{int(selected_facility_data['Asset Age Years'].iloc[0])} years old</strong>
-                    </div>""", 
-                    unsafe_allow_html=True)
-        
+                    </div>""",
+            unsafe_allow_html=True,
+        )
+
     else:
         st.warning("Please select a facility from the dropdown.")
