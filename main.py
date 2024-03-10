@@ -500,25 +500,29 @@ with tab3:
         st.warning("Please select a facility from the dropdown.")
 
 with tab4:
-    st.title("Report")
-    
-    col1, col2 = st.columns(2)
+    col1, col2, col3 = st.columns([1,2,1])
 
     with col1:
         # Overview
-        st.header("Overview")
-        st.markdown("""
-        This analysis integrates the City of Hamilton's building condition data with geographical locations, climate projections, and weather forecasting. The objective is to inform future maintenance strategies and Facilities Maintenance & Life Cycle Renewal Investment Plans. By combining data on building age, type, and use with climate projections, the aim is to establish a robust framework for decision-making. The report investigates the impact of extreme weather events on the operations, maintenance, integrity, and performance of facilities. It identifies vulnerabilities across City Wards and facilities, highlighting the main climate risks in Hamilton. The study also assesses the specific building systems and types most affected by extreme weather, providing insights into the typical impacts on buildings and services during weather emergencies.
-        """)
+        st.markdown("<h3>Overview", unsafe_allow_html=True)
+        st.markdown("""<div style="text-align: justify;">
+                    This analysis integrates the City of Hamilton's building condition data with geographical locations, climate projections, and weather forecasting. 
+                    The objective is to inform future maintenance strategies and Facilities Maintenance & Life Cycle Renewal Investment Plans. 
+                    By combining data on building age, type, and use with climate projections, the aim is to establish a robust framework for decision-making. 
+                    The report investigates the impact of extreme weather events on the operations, maintenance, integrity, and performance of facilities. 
+                    It identifies vulnerabilities across City Wards and facilities, highlighting the main climate risks in Hamilton. 
+                    The study also assesses the specific building systems and types most affected by extreme weather, 
+                    providing insights into the typical impacts on buildings and services during weather emergencies.
+        </div>""", unsafe_allow_html=True)
     
-    with col2:
+    with col3:
         # Key Objectives/Goals
-        st.header("Key Objectives/Goals")
-        st.markdown("""
-        - **Evaluate the Utility of Existing Building Condition Data:** Assess the value of existing building condition data in conjunction with current climate data to establish Facilities Maintenance & Life Cycle renewal frameworks.
-        - **Assess the Impact of Extreme Weather Events:** Investigate how extreme weather events affect facility operations, maintenance, and performance.
-        - **Identify Vulnerable City Wards and Facilities:** Pinpoint City Wards and facilities at risk of climate change in Hamilton.
-        - **Analyze Primary Climate Risks:** Explore the main climate risks facing the City of Hamilton.
-        - **Determine Affected Building Systems:** Identify which building systems are most vulnerable to extreme weather events.
-        - **Evaluate Risks During Weather Emergencies:** Assess the risks posed to different building types and services during weather emergencies.
-        """)
+        st.markdown("<h3>Key Objectives/Goals", unsafe_allow_html=True)
+        st.markdown("""<div style="text-align: justify;">
+        <ul><strong> Evaluate the Utility of Existing Building Condition Data:</strong> Assess the value of existing building condition data in conjunction with current climate data to establish Facilities Maintenance & Life Cycle renewal frameworks.
+        <ul><strong> Assess the Impact of Extreme Weather Events:</strong> Investigate how extreme weather events affect facility operations, maintenance, and performance.
+        <ul><strong> Identify Vulnerable City Wards and Facilities:</strong> Pinpoint City Wards and facilities at risk of climate change in Hamilton.
+        <ul><strong> Analyze Primary Climate Risks:</strong> Explore the main climate risks facing the City of Hamilton.
+        <ul><strong> Determine Affected Building Systems:</strong> Identify which building systems are most vulnerable to extreme weather events.
+        <ul><strong> Evaluate Risks During Weather Emergencies:</strong> Assess the risks posed to different building types and services during weather emergencies.
+        </div>""", unsafe_allow_html=True)
