@@ -48,7 +48,7 @@ data = pd.read_excel("Municipality Hamilton_Analysis.xlsx", sheet_name="RCP 8.5"
 ### create tabs
 st.set_page_config(layout="wide", initial_sidebar_state="collapsed", page_title='Hamilton Fcaility Framework')
 
-tab1,tab2,tab3,tab4,tab5 = st.tabs(['Overview', 'Hamilton Climate','Facility Information', '4', '5'])
+tab1,tab2,tab3,tab4 = st.tabs(['Overview', 'Hamilton Climate','Facility Information', 'Report'])
 
 ###########################################################
 # Section 1#
@@ -343,39 +343,6 @@ with tab2:
         )
 
 with tab3:
-    ###########################################################
-    # Section 3#
-    ###########################################################
-    st.title("Facilities in Hamilton")
-
-    # asset_data = df_3.to_dict(orient='records')
-
-    # # Display raw data
-    # st.subheader("Asset Data")
-    # st.write(asset_data)
-
-    # Summary Statistics
-    st.subheader("Summary Statistics")
-    st.write(asset_data.describe())
-
-    # Visualizations
-    st.subheader("Data Visualizations")
-
-    # Create a horizontal bar chart using plotly
-    fig = px.bar(
-        asset_data["Asset Type"].value_counts().reset_index(),
-        x="count",
-        y="Asset Type",
-        orientation="h",
-        labels={"index": "Asset Type", "Asset Type": "Count"},
-        title="Asset Types Count",
-    )
-
-    # Display the plot
-    st.plotly_chart(fig)
-
-with tab4:
-
     st.title("Facility Information")
     # Custom CSS styles
     custom_styles = """
@@ -426,10 +393,12 @@ with tab4:
 
     # Display the information for the selected facility
     if not selected_facility_data.empty:
+        
         st.write(
-            f"<h2 style='color: #008080; font-weight: bold;'>{selected_facility.title()}</h2>",
+            f"<h2 style='color: #008080; font-weight: bold; font-size: 24px;'>{selected_facility.title()}</h2>",
             unsafe_allow_html=True,
         )
+
         m = folium.Map(
             location=(
                 selected_facility_data["Latitude"],
@@ -450,33 +419,68 @@ with tab4:
             popup=selected_facility_data["Full_Address"].iloc[0],
         ).add_to(m)
 
-        # Display the map
-        folium_static(m)
+        # Create three columns
+        col1, col2 = st.columns([2, 1])
 
-        # Calculate change from last year
-        fci_change = (
-            selected_facility_data["Current FCI"].iloc[0]
-            - selected_facility_data["2023 FCI Rating"].iloc[0]
-        )
-        change_class = "change-positive" if fci_change < 0 else "change-negative"
+        with col1:
+            # Display the map
+            folium_static(m)
 
-        # Display basic information
-        st.markdown(
-            f"""
-                    <div class='facility-info'> FCI 2024
-                        <h1>{round(selected_facility_data['2023 FCI Rating'].iloc[0]*100,2)}%</h1>
-                        <strong>Change from Last Year:<i style='color: {'green' if fci_change < 0 else 'red'};'> {fci_change:.2f}%</i></strong>
-                        <strong>Address: {selected_facility_data['Asset Address'].iloc[0]}</strong> 
-                        <strong>Size: {selected_facility_data['Asset Size'].iloc[0]} {selected_facility_data['Asset Measure Unit'].iloc[0]}</strong>
-                        <strong>{int(selected_facility_data['Asset Age Years'].iloc[0])} years old</strong>
-                    </div>""",
-            unsafe_allow_html=True,
-        )
+        with col2:
+            # Calculate change from last year
+            fci_change = (
+                selected_facility_data["Current FCI"].iloc[0]
+                - selected_facility_data["2023 FCI Rating"].iloc[0]
+            )
+            change_class = "change-positive" if fci_change < 0 else "change-negative"
 
-        st.metric(label='FCI',value = f"{round(selected_facility_data['2023 FCI Rating'].iloc[0]*100,2)}", delta = f"{fci_change}")
+            # st.metric call:
+            fci_value = round(selected_facility_data['2023 FCI Rating'].iloc[0]*100, 2)
+            fci_change_rounded = round(fci_change, 2)
+            st.metric(label='FCI 2024', value=f"{fci_value}", delta=f"{fci_change_rounded}", delta_color="inverse")
+
+            # Display basic information
+            st.markdown(
+                f"""
+                **Size:** {selected_facility_data['Asset Size'].iloc[0]} {selected_facility_data['Asset Measure Unit'].iloc[0]}<br>
+                **Age:** {int(selected_facility_data['Asset Age Years'].iloc[0])} years old
+                """,
+                unsafe_allow_html=True,
+            )
 
     else:
         st.warning("Please select a facility from the dropdown.")
 
-with tab5:
+    ###########################################################
+    # Section 3 #
+    ###########################################################
+    st.title("Facilities in Hamilton")
+
+    # asset_data = df_3.to_dict(orient='records')
+
+    # # Display raw data
+    # st.subheader("Asset Data")
+    # st.write(asset_data)
+
+    # Summary Statistics
+    st.subheader("Summary Statistics")
+    st.write(asset_data.describe())
+
+    # Visualizations
+    st.subheader("Data Visualizations")
+
+    # Create a horizontal bar chart using plotly
+    fig = px.bar(
+        asset_data["Asset Type"].value_counts().reset_index(),
+        x="count",
+        y="Asset Type",
+        orientation="h",
+        labels={"index": "Asset Type", "Asset Type": "Count"},
+        title="Asset Types Count",
+    )
+
+    # Display the plot
+    st.plotly_chart(fig)
+
+with tab4:
     st.write('Report')
