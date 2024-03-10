@@ -1,2 +1,7 @@
 [theme]
-base="light"
+base = "light"
+primaryColor = "#1a61a9"  # This blue color could be used for primary buttons or highlights
+backgroundColor = "#DCDCDC"  # Light grey for a neutral background, easier on the eyes
+secondaryBackgroundColor = "#ffffff"  # A darker blue for secondary elements or headers
+textColor = "#232323"  # Very dark grey, almost black, for text to ensure good readability
+font = "sans-serif"

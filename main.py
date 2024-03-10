@@ -74,18 +74,22 @@ with tab1:
     )
 
     # Create a Folium map centered around Hamilton, Ontario
-    m = folium.Map(location=hamilton_coords, zoom_start=10, tiles="Cartodb dark_matter")
+    m = folium.Map(location=hamilton_coords, zoom_start=10, tiles="CartoDB positron")
+
+    # Use one of the provided colors for the fillColor, and a contrasting color for the borders
     folium.GeoJson(
         api_url,
         style_function=lambda feature: {
-            "fillColor": "#008080",
-            "color": "black",
+            "fillColor": "#1a61a9",  # Hex 1 from the palette for the area fill
+            "color": "#fbb904",  # Hex 2 from the palette for the borders, ensuring visibility
             "weight": 2,
             "dashArray": "5, 5",
-            "fillOpacity": 0.4,
+            "fillOpacity": 0.6,  # Adjusted for slightly more opacity
         },
     ).add_to(m)
+
     folium_static(m)
+
 
     # Navigation bar
     # nav_choice = st.sidebar.radio("Navigation", ["Summary Statistics", "Raw Data"])
@@ -343,6 +347,40 @@ with tab2:
         )
 
 with tab3:
+    ###########################################################
+    # Section 3 #
+    ###########################################################
+    st.title("Facilities in Hamilton")
+
+    # asset_data = df_3.to_dict(orient='records')
+
+    # # Display raw data
+    # st.subheader("Asset Data")
+    # st.write(asset_data)
+
+    # Summary Statistics
+    st.subheader("Summary Statistics")
+    st.write(asset_data.describe())
+
+    # Visualizations
+    st.subheader("Data Visualizations")
+
+    # Create a horizontal bar chart using plotly
+    fig = px.bar(
+        asset_data["Asset Type"].value_counts().reset_index(),
+        x="count",
+        y="Asset Type",
+        orientation="h",
+        labels={"index": "Asset Type", "Asset Type": "Count"},
+        title="Asset Types Count",
+    )
+
+    # Display the plot
+    st.plotly_chart(fig)
+
+        ###########################################################
+    # Section 4 #
+    ###########################################################
     st.title("Facility Information")
     # Custom CSS styles
     custom_styles = """
@@ -436,14 +474,24 @@ with tab3:
 
             # st.metric call:
             fci_value = round(selected_facility_data['2023 FCI Rating'].iloc[0]*100, 2)
+            
             fci_change_rounded = round(fci_change, 2)
             st.metric(label='FCI 2024', value=f"{fci_value}", delta=f"{fci_change_rounded}", delta_color="inverse")
+
+            selected_asset_type = selected_facility_data['Asset Type'].iloc[0]
+            matching_row = asset_data[asset_data['Asset Type'] == selected_asset_type]
+            indoor_outdoor = matching_row['Indoor/Outdoor'].iloc[0]
+            likely_end_user_age_category = matching_row['Likely End User Age Category'].iloc[0]
+
+
 
             # Display basic information
             st.markdown(
                 f"""
                 **Size:** {selected_facility_data['Asset Size'].iloc[0]} {selected_facility_data['Asset Measure Unit'].iloc[0]}<br>
-                **Age:** {int(selected_facility_data['Asset Age Years'].iloc[0])} years old
+                **Age:** {int(selected_facility_data['Asset Age Years'].iloc[0])} years old<br>
+                **Environment:** {indoor_outdoor}<br>
+                **Typical Users:** {likely_end_user_age_category}
                 """,
                 unsafe_allow_html=True,
             )
@@ -451,36 +499,26 @@ with tab3:
     else:
         st.warning("Please select a facility from the dropdown.")
 
-    ###########################################################
-    # Section 3 #
-    ###########################################################
-    st.title("Facilities in Hamilton")
-
-    # asset_data = df_3.to_dict(orient='records')
-
-    # # Display raw data
-    # st.subheader("Asset Data")
-    # st.write(asset_data)
-
-    # Summary Statistics
-    st.subheader("Summary Statistics")
-    st.write(asset_data.describe())
-
-    # Visualizations
-    st.subheader("Data Visualizations")
-
-    # Create a horizontal bar chart using plotly
-    fig = px.bar(
-        asset_data["Asset Type"].value_counts().reset_index(),
-        x="count",
-        y="Asset Type",
-        orientation="h",
-        labels={"index": "Asset Type", "Asset Type": "Count"},
-        title="Asset Types Count",
-    )
-
-    # Display the plot
-    st.plotly_chart(fig)
-
 with tab4:
-    st.write('Report')
+    st.title("Report")
+    
+    col1, col2 = st.columns(2)
+
+    with col1:
+        # Overview
+        st.header("Overview")
+        st.markdown("""
+        This analysis integrates the City of Hamilton's building condition data with geographical locations, climate projections, and weather forecasting. The objective is to inform future maintenance strategies and Facilities Maintenance & Life Cycle Renewal Investment Plans. By combining data on building age, type, and use with climate projections, the aim is to establish a robust framework for decision-making. The report investigates the impact of extreme weather events on the operations, maintenance, integrity, and performance of facilities. It identifies vulnerabilities across City Wards and facilities, highlighting the main climate risks in Hamilton. The study also assesses the specific building systems and types most affected by extreme weather, providing insights into the typical impacts on buildings and services during weather emergencies.
+        """)
+    
+    with col2:
+        # Key Objectives/Goals
+        st.header("Key Objectives/Goals")
+        st.markdown("""
+        - **Evaluate the Utility of Existing Building Condition Data:** Assess the value of existing building condition data in conjunction with current climate data to establish Facilities Maintenance & Life Cycle renewal frameworks.
+        - **Assess the Impact of Extreme Weather Events:** Investigate how extreme weather events affect facility operations, maintenance, and performance.
+        - **Identify Vulnerable City Wards and Facilities:** Pinpoint City Wards and facilities at risk of climate change in Hamilton.
+        - **Analyze Primary Climate Risks:** Explore the main climate risks facing the City of Hamilton.
+        - **Determine Affected Building Systems:** Identify which building systems are most vulnerable to extreme weather events.
+        - **Evaluate Risks During Weather Emergencies:** Assess the risks posed to different building types and services during weather emergencies.
+        """)
