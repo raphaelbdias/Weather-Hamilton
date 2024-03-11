@@ -4,6 +4,7 @@ click
 cycler
 fonttools
 folium
+geopandas
 gitdb
 gitpython
 kiwisolver
