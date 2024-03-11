@@ -14,7 +14,7 @@ import ward_asset_mapping
 import matplotlib.pyplot as plt
 import matplotlib.colors
 from branca.element import Template, MacroElement
-
+import streamlit.components.v1 as components
 # data loading
 
 # 1- ward
@@ -82,19 +82,19 @@ with tab1:
     unique_asset_type = ward_asset_mapping.get_unique_asset_type(gdf_assets)
 
     # Create a Folium map centered around Hamilton, Ontario
-    m = folium.Map(location=hamilton_coords, zoom_start=10, tiles="CartoDB positron")
+    m1 = folium.Map(location=hamilton_coords, zoom_start=10, tiles="CartoDB positron")
 
     # Use one of the provided colors for the fillColor, and a contrasting color for the borders
     folium.GeoJson(
         api_url,
         style_function=lambda feature: {
-            "fillColor": "#1a61a9",  # Hex 1 from the palette for the area fill
-            "color": "#fbb904",  # Hex 2 from the palette for the borders, ensuring visibility
+            "fillColor": "#015bbb",  # Hex 1 from the palette for the area fill
+            "color": "#e16f49",  # Hex 2 from the palette for the borders, ensuring visibility
             "weight": 2,
             "dashArray": "5, 5",
             "fillOpacity": 0.4,  # Adjusted for slightly more opacity
         },
-    ).add_to(m)
+    ).add_to(m1)
 
     # Generate a unique color for each ward
     colors = plt.cm.tab20b(range(len(unique_asset_type)))  # Using a matplotlib colormap
@@ -112,13 +112,15 @@ with tab1:
             fill=True,
             fill_opacity=0.6,
             radius=1.6
-        ).add_to(m)
+        ).add_to(m1)
+
+    # m1.save("MainMap.html")
 
     col1, col2 = st.columns((2,1))  # Adjust the ratio as per your layout needs
     
     with col1:
         # Display the Folium map in the larger column
-        folium_static(m)
+        folium_static(m1)
 
     with col2:
         # Create a simple legend for asset types and their colors
@@ -537,23 +539,31 @@ with tab3:
         st.warning("Please select a facility from the dropdown.")
 
 with tab4:
-    col1, col2, col3= st.columns([1,2,1])
+    col1, col2, col3= st.columns((3,3,1), gap = 'small')
 
     with col1:
-        # Overview
-        st.markdown("<h3>Overview", unsafe_allow_html=True)
-        st.markdown("""<div style="text-align: justify;">
-                    This analysis integrates the City of Hamilton's building condition data with geographical locations, climate projections, and weather forecasting. 
-                    The objective is to inform future maintenance strategies and Facilities Maintenance & Life Cycle Renewal Investment Plans. 
-                    By combining data on building age, type, and use with climate projections, the aim is to establish a robust framework for decision-making. 
-                    The report investigates the impact of extreme weather events on the operations, maintenance, integrity, and performance of facilities. 
-                    It identifies vulnerabilities across City Wards and facilities, highlighting the main climate risks in Hamilton. 
-                    The study also assesses the specific building systems and types most affected by extreme weather, 
-                    providing insights into the typical impacts on buildings and services during weather emergencies.
-        </div>""", unsafe_allow_html=True)
+        with st.container():
+            st.markdown("<h3>OVERVIEW", unsafe_allow_html=True)
+            subcol1, subcol2 = st.columns([1,1])
+            with subcol1:
+                with open("MainMap.html", "r") as file:
+                    html_content = file.read()
+                components.html(html_content, height= 450)
+
+            with subcol2:
+                st.markdown("""<div style="text-align: justify;">
+                            This analysis integrates the City of Hamilton's building condition data with geographical locations, climate projections, and weather forecasting. 
+                            The objective is to inform future maintenance strategies and Facilities Maintenance & Life Cycle Renewal Investment Plans. 
+                            By combining data on building age, type, and use with climate projections, the aim is to establish a robust framework for decision-making. 
+                            The report investigates the impact of extreme weather events on the operations, maintenance, integrity, and performance of facilities. 
+                            It identifies vulnerabilities across City Wards and facilities, highlighting the main climate risks in Hamilton. 
+                            The study also assesses the specific building systems and types most affected by extreme weather, 
+                            providing insights into the typical impacts on buildings and services during weather emergencies.
+                </div>""", unsafe_allow_html=True)              
+
         
         # Key Objectives/Goals
-        st.markdown("<h3>Key Objectives/Goals", unsafe_allow_html=True)
+        st.markdown("<h3>KEY O", unsafe_allow_html=True)
         st.markdown("""<div style="text-align: justify;">
         <ul><strong> Evaluate the Utility of Existing Building Condition Data:</strong> Assess the value of existing building condition data in conjunction with current climate data to establish Facilities Maintenance & Life Cycle renewal frameworks.
         <ul><strong> Assess the Impact of Extreme Weather Events:</strong> Investigate how extreme weather events affect facility operations, maintenance, and performance.
@@ -563,15 +573,13 @@ with tab4:
         <ul><strong> Evaluate Risks During Weather Emergencies:</strong> Assess the risks posed to different building types and services during weather emergencies.
         </div>""", unsafe_allow_html=True)
     with col2:
-        st.image("images/Framework.png", caption="Weather Analysis Framework", use_column_width=True,)
+        st.markdown("<h3>FACILITIES MAINTENANCE FRAMEWORK", unsafe_allow_html=True)
+        with st.container():
+            st.image("images/Framework.png", caption="Weather Analysis Framework", width=400,)
+
     with col3:
-        # Key Objectives/Goals
-        st.markdown("<h3>Recommendations", unsafe_allow_html=True)
-        # st.markdown("""<div style="text-align: justify;">
-        # <ul><strong> Evaluate the Utility of Existing Building Condition Data:</strong> Assess the value of existing building condition data in conjunction with current climate data to establish Facilities Maintenance & Life Cycle renewal frameworks.
-        # <ul><strong> Assess the Impact of Extreme Weather Events:</strong> Investigate how extreme weather events affect facility operations, maintenance, and performance.
-        # <ul><strong> Identify Vulnerable City Wards and Facilities:</strong> Pinpoint City Wards and facilities at risk of climate change in Hamilton.
-        # <ul><strong> Analyze Primary Climate Risks:</strong> Explore the main climate risks facing the City of Hamilton.
-        # <ul><strong> Determine Affected Building Systems:</strong> Identify which building systems are most vulnerable to extreme weather events.
-        # <ul><strong> Evaluate Risks During Weather Emergencies:</strong> Assess the risks posed to different building types and services during weather emergencies.
-        # </div>""", unsafe_allow_html=True)
+                # Create a simple legend for asset types and their colors
+        with st.expander("## Asset Type Legend"):
+            for asset_type, color in asset_type_color_map.items():
+                # Use HTML to display the color alongside the asset type
+                st.markdown(f"<div style='display: flex; align-items: center;'><div style='width: 20px; height: 20px; background-color: {color}; margin-right: 10px;'></div>{asset_type}</div>", unsafe_allow_html=True)
