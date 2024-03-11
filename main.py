@@ -10,6 +10,10 @@ from streamlit_folium import folium_static
 import plotly.graph_objects as go
 import plotly.express as px
 import json
+import ward_asset_mapping
+import matplotlib.pyplot as plt
+import matplotlib.colors
+from branca.element import Template, MacroElement
 
 # data loading
 
@@ -73,6 +77,10 @@ with tab1:
         unsafe_allow_html=True,
     )
 
+    gdf_assets = ward_asset_mapping.load_data_and_process()
+
+    unique_asset_type = ward_asset_mapping.get_unique_asset_type(gdf_assets)
+
     # Create a Folium map centered around Hamilton, Ontario
     m = folium.Map(location=hamilton_coords, zoom_start=10, tiles="CartoDB positron")
 
@@ -84,11 +92,40 @@ with tab1:
             "color": "#fbb904",  # Hex 2 from the palette for the borders, ensuring visibility
             "weight": 2,
             "dashArray": "5, 5",
-            "fillOpacity": 0.6,  # Adjusted for slightly more opacity
+            "fillOpacity": 0.4,  # Adjusted for slightly more opacity
         },
     ).add_to(m)
 
-    folium_static(m)
+    # Generate a unique color for each ward
+    colors = plt.cm.tab20b(range(len(unique_asset_type)))  # Using a matplotlib colormap
+    colors = [matplotlib.colors.to_hex(c) for c in colors]  # Convert RGBA to hex
+
+    # Create a dictionary to map ward number to color
+    asset_type_color_map = {assettype: color for assettype, color in zip(unique_asset_type, colors)}
+
+    # Add asset markers to the map with ward-specific colors
+    for idx, row in gdf_assets.iterrows():
+        asset_type_color = asset_type_color_map.get(row['Asset Type'], '#333333')
+        folium.CircleMarker(
+            location=[row['Latitude'], row['Longitude']],
+            color=asset_type_color,
+            fill=True,
+            fill_opacity=0.6,
+            radius=1.6
+        ).add_to(m)
+
+    col1, col2 = st.columns((2,1))  # Adjust the ratio as per your layout needs
+    
+    with col1:
+        # Display the Folium map in the larger column
+        folium_static(m)
+
+    with col2:
+        # Create a simple legend for asset types and their colors
+        st.write("## Asset Type Legend")
+        for asset_type, color in asset_type_color_map.items():
+            # Use HTML to display the color alongside the asset type
+            st.markdown(f"<div style='display: flex; align-items: center;'><div style='width: 20px; height: 20px; background-color: {color}; margin-right: 10px;'></div>{asset_type}</div>", unsafe_allow_html=True)
 
 
     # Navigation bar
