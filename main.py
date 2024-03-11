@@ -52,12 +52,13 @@ data = pd.read_excel("Municipality Hamilton_Analysis.xlsx", sheet_name="RCP 8.5"
 ### create tabs
 st.set_page_config(layout="wide", initial_sidebar_state="collapsed", page_title='Hamilton Fcaility Framework')
 
-tab1,tab2,tab3,tab4 = st.tabs(['Overview', 'Hamilton Climate','Facility Information', 'Report'])
+tab1,tab2,tab3,tab4,tab5 = st.tabs(['Overview', 'Hamilton Climate','Facility Information', 'Report', 'Other'])
 
 ###########################################################
 # Section 1#
 ###########################################################
 with tab1:
+    st.write('Hey')
     # Streamlit app
     st.title("Climate Analysis of Hamilton")
 
@@ -583,3 +584,48 @@ with tab4:
             for asset_type, color in asset_type_color_map.items():
                 # Use HTML to display the color alongside the asset type
                 st.markdown(f"<div style='display: flex; align-items: center;'><div style='width: 20px; height: 20px; background-color: {color}; margin-right: 10px;'></div>{asset_type}</div>", unsafe_allow_html=True)
+with tab5:
+    st.write('Hey')
+
+    # df = pd.read_excel('data_20240308_combined_v2.xlsx', sheet_name='raw')
+    # df['Maintenance Types'] = df['Maintenance Types'].apply(lambda x: x.split(', '))
+    # df['Weather Condition'] = df['Weather Condition'].apply(lambda x: x.split(', '))
+
+    # # Convert 'Asset Date Built' to datetime format
+    # df['Asset Date Built'] = pd.to_datetime(df['Asset Date Built'])
+
+    # # Calculate the current age
+    # current_date = dt.now()
+    # df['Asset Age'] = current_date - df['Asset Date Built']
+
+    # # Extract the age in years, days, etc.
+    # df['Asset Age Years'] = df['Asset Age'].dt.days // 365
+    # df['Asset Date Built'] = df['Asset Date Built'].apply(lambda x: str(x))
+
+    # # Sidebar with filter options
+    # # st.sidebar.header('Filter Options')
+    # selected_maintenance_type = st.selectbox('Select Maintenance Type', df['Maintenance Types'].explode().unique())
+    # selected_weather_condition = st.selectbox('Select Weather Condition', df['Weather Condition'].explode().unique())
+
+    # # Filter the dataframe based on user selection
+    # filtered_df = df[(df['Maintenance Types'].explode() == selected_maintenance_type) & 
+    #                 (df['Weather Condition'].explode() == selected_weather_condition)]
+
+    # # Display summary statistics
+    # st.header('Summary Statistics')
+    # st.write(f"Selected Maintenance Type: {selected_maintenance_type}")
+    # st.write(f"Selected Weather Condition: {selected_weather_condition}")
+    # st.write(filtered_df.describe())
+
+    # # Visualize data
+    # st.header('Visualization')
+    # st.bar_chart(filtered_df['Asset Age Years'].value_counts().sort_index())
+
+    # # data = df.to_dict(orient='records')
+    # # with open('data2023.json', 'w') as fp:
+    # #     json.dump(data, fp, indent=4, sort_keys=True, default=str)
+
+
+
+
+# frequency and intensity of extreme weather events, such as tornadoes, floods, and heatwaves
