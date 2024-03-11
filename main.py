@@ -46,13 +46,17 @@ asset_data["Asset Age"] = current_date - asset_data["Asset Date Built"]
 
 # Extract the age in years, days, etc.
 asset_data["Asset Age Years"] = asset_data["Asset Age"].dt.days // 365
-asset_data["Asset Date Built"] = asset_data["Asset Date Built"].apply(lambda x: str(x))
-data = pd.read_excel("Municipality Hamilton_Analysis.xlsx", sheet_name="RCP 8.5")
+asset_data["Asset Date Built"] = asset_data["Asset Date Built"].apply(
+    lambda x: str(x))
+data = pd.read_excel("Municipality Hamilton_Analysis.xlsx",
+                     sheet_name="RCP 8.5")
 
-### create tabs
-st.set_page_config(layout="wide", initial_sidebar_state="collapsed", page_title='Hamilton Fcaility Framework')
+# create tabs
+st.set_page_config(layout="wide", initial_sidebar_state="collapsed",
+                   page_title='Hamilton Fcaility Framework')
 
-tab1,tab2,tab3,tab4,tab5 = st.tabs(['Overview', 'Hamilton Climate','Facility Information', 'Report', 'Other'])
+tab1, tab2, tab3, tab4, tab5 = st.tabs(
+    ['Overview', 'Hamilton Climate', 'Facility Information', 'Report', 'Other'])
 
 ###########################################################
 # Section 1#
@@ -83,7 +87,8 @@ with tab1:
     unique_asset_type = ward_asset_mapping.get_unique_asset_type(gdf_assets)
 
     # Create a Folium map centered around Hamilton, Ontario
-    m1 = folium.Map(location=hamilton_coords, zoom_start=10, tiles="CartoDB positron")
+    m1 = folium.Map(location=hamilton_coords,
+                    zoom_start=10, tiles="CartoDB positron")
 
     # Use one of the provided colors for the fillColor, and a contrasting color for the borders
     folium.GeoJson(
@@ -98,15 +103,19 @@ with tab1:
     ).add_to(m1)
 
     # Generate a unique color for each ward
-    colors = plt.cm.tab20b(range(len(unique_asset_type)))  # Using a matplotlib colormap
-    colors = [matplotlib.colors.to_hex(c) for c in colors]  # Convert RGBA to hex
+    colors = plt.cm.tab20b(range(len(unique_asset_type))
+                           )  # Using a matplotlib colormap
+    colors = [matplotlib.colors.to_hex(c)
+              for c in colors]  # Convert RGBA to hex
 
     # Create a dictionary to map ward number to color
-    asset_type_color_map = {assettype: color for assettype, color in zip(unique_asset_type, colors)}
+    asset_type_color_map = {assettype: color for assettype,
+                            color in zip(unique_asset_type, colors)}
 
     # Add asset markers to the map with ward-specific colors
     for idx, row in gdf_assets.iterrows():
-        asset_type_color = asset_type_color_map.get(row['Asset Type'], '#333333')
+        asset_type_color = asset_type_color_map.get(
+            row['Asset Type'], '#333333')
         folium.CircleMarker(
             location=[row['Latitude'], row['Longitude']],
             color=asset_type_color,
@@ -117,8 +126,9 @@ with tab1:
 
     # m1.save("MainMap.html")
 
-    col1, col2 = st.columns((2,1))  # Adjust the ratio as per your layout needs
-    
+    # Adjust the ratio as per your layout needs
+    col1, col2 = st.columns((2, 1))
+
     with col1:
         # Display the Folium map in the larger column
         folium_static(m1)
@@ -128,8 +138,8 @@ with tab1:
         st.write("## Asset Type Legend")
         for asset_type, color in asset_type_color_map.items():
             # Use HTML to display the color alongside the asset type
-            st.markdown(f"<div style='display: flex; align-items: center;'><div style='width: 20px; height: 20px; background-color: {color}; margin-right: 10px;'></div>{asset_type}</div>", unsafe_allow_html=True)
-
+            st.markdown(f"<div style='display: flex; align-items: center;'><div style='width: 20px; height: 20px; background-color: {
+                        color}; margin-right: 10px;'></div>{asset_type}</div>", unsafe_allow_html=True)
 
     # Navigation bar
     # nav_choice = st.sidebar.radio("Navigation", ["Summary Statistics", "Raw Data"])
@@ -145,7 +155,8 @@ with tab1:
     multiselect_key = "select_columns_multiselect"
 
     # Select chart type using a radio button
-    chart_type = st.radio("Select Chart Type", ["Bar Chart", "Line Chart"], index=0)
+    chart_type = st.radio("Select Chart Type", [
+                          "Bar Chart", "Line Chart"], index=0)
 
     # Plotting example: Bar or Line chart for selected columns
     selected_columns = st.multiselect(
@@ -209,7 +220,7 @@ with tab2:
                         """)
     st.markdown(
         """<div style='color: #008080; font-size: 16px; font-weight: bold;'>
-            Comparison of historical average (1976-2005) to the projected mean for 
+            Comparison of historical average (1976-2005) to the projected mean for
             2021-2050 With GHG emissions continuing to increase at current rates (RCP 8.5).
         </div>""",
         unsafe_allow_html=True,
@@ -235,12 +246,14 @@ with tab2:
         container = st.container(border=True)
         # Filter data for Precipitation
         precipitation_data = data.loc[
-            (data["Variable"] == "Precipitation (mm)") & (data["Period"] != "annual")
+            (data["Variable"] == "Precipitation (mm)") & (
+                data["Period"] != "annual")
         ]
 
         # Filter data for Mean Temperature
         temperature_data = data.loc[
-            (data["Variable"] == "Mean Temperature (°C)") & (data["Period"] != "annual")
+            (data["Variable"] == "Mean Temperature (°C)") & (
+                data["Period"] != "annual")
         ]
 
         # Display the combined chart
@@ -260,61 +273,60 @@ with tab2:
         # Apply style to the line chart
         # st.line_chart.pyplot().set_theme(style="whitegrid")r
 
-
     # Display the blurb for extreme weather in the third column
     with col2:
         filtered_data = data.loc[
-            (data["Variable"] == "Mean Temperature (°C)") & (data["Period"] != "annual")
+            (data["Variable"] == "Mean Temperature (°C)") & (
+                data["Period"] != "annual")
         ]
         st.markdown(
-                """<div style='color: #008080; 
-                    font-size: 16px; 
+            """<div style='color: #008080;
+                    font-size: 16px;
                     font-weight: bold;
                     background-color: #262730;
                     padding: 15px;
                     border: 2px solid #262730;
                     border-radius: 10px;
                     margin-top: 20px;'>
-            Precipitation Changes: 
-            <ul>Overall, there is a notable 6.40% increase in annual precipitation (54mm). 
-            Winter, Spring, and Fall are expected to be significantly affected, with increases of 10.70%, 10.60%, and 4.04%, respectively. 
+            Precipitation Changes:
+            <ul>Overall, there is a notable 6.40% increase in annual precipitation (54mm).
+            Winter, Spring, and Fall are expected to be significantly affected, with increases of 10.70%, 10.60%, and 4.04%, respectively.
             Summer, however, will experience a more modest impact at 0.92%.
         </div>""",
             unsafe_allow_html=True,
         )
         st.markdown(
-                """<div style='color: #008080; 
-                    font-size: 16px; 
+            """<div style='color: #008080;
+                    font-size: 16px;
                     font-weight: bold;
                     background-color: #262730;
                     padding: 15px;
                     border: 2px solid #262730;
                     border-radius: 10px;
                     margin-top: 20px;'>
-            Mean Temperature Rise: 
-            <ul>The annual mean temperature is projected to rise by 25.30%, corresponding to a 2.1°C increase. 
-            Winter, Spring, and Fall will be most affected, with increases of 58.97%, 26.87%, and 21.78%, respectively. 
+            Mean Temperature Rise:
+            <ul>The annual mean temperature is projected to rise by 25.30%, corresponding to a 2.1°C increase.
+            Winter, Spring, and Fall will be most affected, with increases of 58.97%, 26.87%, and 21.78%, respectively.
             Summer will see the least impact at 10.41%.
         </div>""",
             unsafe_allow_html=True,
         )
         st.markdown(
-                """<div style='color: #008080; 
-                    font-size: 16px; 
+            """<div style='color: #008080;
+                    font-size: 16px;
                     font-weight: bold;
                     background-color: #262730;
                     padding: 15px;
                     border: 2px solid #262730;
                     border-radius: 10px;
                     margin-top: 20px;'>
-            Extreme Weather Events: 
+            Extreme Weather Events:
             <ul>Tropical nights, characterized by temperatures above 20°C, will surge from 7 to 19.
             Very hot days (above 30°C) are expected to more than double, increasing from 16 to 37.
             Fortunately, the occurrence of very cold days (below -30°C) is anticipated to cease due to rising temperatures.
         </div>""",
             unsafe_allow_html=True,
         )
-
 
         # Apply custom styles
         custom_styles = """
@@ -383,8 +395,8 @@ with tab2:
                 <p><strong>Very cold days (-30°C):</strong> {annual_values[selected_metric][2]}</p>
             </div>
         """,
-            unsafe_allow_html=True
-        )
+                    unsafe_allow_html=True
+                    )
 
 with tab3:
     ###########################################################
@@ -418,7 +430,7 @@ with tab3:
     # Display the plot
     st.plotly_chart(fig)
 
-        ###########################################################
+    ###########################################################
     # Section 4 #
     ###########################################################
     st.title("Facility Information")
@@ -464,16 +476,19 @@ with tab3:
     st.markdown(custom_styles, unsafe_allow_html=True)
 
     # Create a dropdown to select the facility
-    selected_facility = st.selectbox("Select Facility", asset_data["Asset Name"])
+    selected_facility = st.selectbox(
+        "Select Facility", asset_data["Asset Name"])
 
     # Filter the data for the selected facility
-    selected_facility_data = asset_data[asset_data["Asset Name"] == selected_facility]
+    selected_facility_data = asset_data[asset_data["Asset Name"]
+                                        == selected_facility]
 
     # Display the information for the selected facility
     if not selected_facility_data.empty:
-        
+
         st.write(
-            f"<h2 style='color: #008080; font-weight: bold; font-size: 24px;'>{selected_facility.title()}</h2>",
+            f"<h2 style='color: #008080; font-weight: bold; font-size: 24px;'>{
+                selected_facility.title()}</h2>",
             unsafe_allow_html=True,
         )
 
@@ -513,17 +528,18 @@ with tab3:
             change_class = "change-positive" if fci_change < 0 else "change-negative"
 
             # st.metric call:
-            fci_value = round(selected_facility_data['2023 FCI Rating'].iloc[0]*100, 2)
-            
+            fci_value = round(
+                selected_facility_data['2023 FCI Rating'].iloc[0]*100, 2)
+
             fci_change_rounded = round(fci_change, 2)
-            st.metric(label='FCI 2024', value=f"{fci_value}", delta=f"{fci_change_rounded}", delta_color="inverse")
+            st.metric(label='FCI 2024', value=f"{fci_value}", delta=f"{
+                      fci_change_rounded}", delta_color="inverse")
 
             selected_asset_type = selected_facility_data['Asset Type'].iloc[0]
-            matching_row = asset_data[asset_data['Asset Type'] == selected_asset_type]
+            matching_row = asset_data[asset_data['Asset Type']
+                                      == selected_asset_type]
             indoor_outdoor = matching_row['Indoor/Outdoor'].iloc[0]
             likely_end_user_age_category = matching_row['Likely End User Age Category'].iloc[0]
-
-
 
             # Display basic information
             st.markdown(
@@ -538,34 +554,139 @@ with tab3:
 
     else:
         st.warning("Please select a facility from the dropdown.")
+    df = pd.read_excel('data_20240308_combined_v2.xlsx', sheet_name='raw')
+    df['Maintenance Types'] = df['Maintenance Types'].apply(
+        lambda x: x.split(', '))
+    df['Weather Condition'] = df['Weather Condition'].apply(
+        lambda x: x.split(', '))
+
+    # Convert 'Asset Date Built' to datetime format
+    df['Asset Date Built'] = pd.to_datetime(df['Asset Date Built'])
+
+    # Calculate the current age
+    current_date = dt.now()
+    df['Asset Age'] = current_date - df['Asset Date Built']
+
+    # Extract the age in years, days, etc.
+    df['Asset Age Years'] = df['Asset Age'].dt.days // 365
+    df['Asset Date Built'] = df['Asset Date Built'].apply(lambda x: str(x))
+    st.markdown(
+        '<h2>Distribution by Asset Type</h3>', unsafe_allow_html=True)
+
+    col1, col2, col3 = st.columns([2, 2, 1], gap='large')
+
+    with col1:
+        # Explode the lists in 'maintenance_type' and 'weather_type' columns
+        df_exploded = df.explode('Weather Condition')
+        # Group by maintenance type and weather type, and count occurrences
+        trends_df = df_exploded.groupby(['Asset Type', 'Weather Condition'])[
+            'Weather Condition'].count().reset_index(name='count')
+        # print(trends_df.columns)
+        # Pivot the DataFrame to make 'Weather Condition' as columns
+        trends_pivot = trends_df.pivot(
+            index='Weather Condition', columns='Asset Type', values='count').fillna(0)
+        # Reset the index for a cleaner DataFrame
+        trends_pivot['total'] = trends_pivot.sum(axis=1)
+        trends_pivot.reset_index(inplace=True)
+        trends_pivot = trends_pivot.sort_values(
+            by='total', ascending=True)
+        # Stacked Bar Chart using Plotly Express
+        st.markdown(
+            '<h3>Weather Condition</h3>', unsafe_allow_html=True)
+        fig = px.bar(trends_pivot, x=trends_pivot.columns[1:], y='Weather Condition',
+                     labels={'value': 'Count',
+                             'Weather Condition': 'Weather Condition'},
+                     orientation='h',
+                     color_discrete_map=asset_type_color_map,
+                     height=600)
+        # Turn off the legend
+        fig.update_layout(showlegend=False)
+        fig.update_layout(
+            font=dict(size=5)
+        )
+        fig.update_layout(barmode='stack', xaxis=dict(
+            categoryorder='total descending'))
+        st.plotly_chart(fig, use_container_width=True)
+
+        with st.expander("## Weather Condition Summary"):
+            st.table(
+                df_exploded.groupby('Weather Condition')['Asset Type'].count(
+                ).sort_values(ascending=False).reset_index(name='Number of Assets'))
+
+        # Add labels inside the bars
+    with col2:
+        # Explode the lists in 'maintenance_type' and 'weather_type' columns
+        df_exploded = df.explode('Maintenance Types')
+        # Group by maintenance type and weather type, and count occurrences
+        trends_df = df_exploded.groupby(['Asset Type', 'Maintenance Types'])[
+            'Maintenance Types'].count().reset_index(name='count')
+        # print(trends_df.columns)
+        # Pivot the DataFrame to make 'Maintenance Types' as columns
+        trends_pivot = trends_df.pivot(
+            index='Maintenance Types', columns='Asset Type', values='count').fillna(0)
+        # Reset the index for a cleaner DataFrame
+        trends_pivot['total'] = trends_pivot.sum(axis=1)
+        trends_pivot.reset_index(inplace=True)
+        trends_pivot = trends_pivot.sort_values(
+            by='total', ascending=True)
+        # Stacked Bar Chart using Plotly Express
+        st.markdown(
+            '<h3>Maintenance Type</h3>', unsafe_allow_html=True)
+        fig = px.bar(trends_pivot, x=trends_pivot.columns[1:], y='Maintenance Types',
+                     labels={'value': 'Count',
+                             'Maintenance Types': 'Maintenance Types'},
+                     orientation='h',
+                     color_discrete_map=asset_type_color_map,
+                     height=600)
+        # Turn off the legend
+        fig.update_layout(showlegend=False)
+        fig.update_layout(
+            font=dict(size=5)
+        )
+        fig.update_layout(barmode='stack', xaxis=dict(
+            categoryorder='total descending'))
+        st.plotly_chart(fig, use_container_width=True)
+        with st.expander("## Maintenance Type Summary"):
+            st.table(
+                df_exploded.groupby('Maintenance Types')['Asset Type'].count(
+                ).sort_values(ascending=False).reset_index(name='Number of Assets'))
+
+    with col3:
+        # Create a simple legend for asset types and their colors
+        # with st.expander("## Asset Type Legend"):
+        st.write("### Asset Type Legend")
+        for asset_type, color in asset_type_color_map.items():
+            # Use HTML to display the color alongside the asset type
+            st.markdown(f"<div style='display: flex; align-items: center;'><div style='width: 20px; height: 20px; background-color: {
+                        color}; margin-right: 10px;'></div>{asset_type}</div>", unsafe_allow_html=True)
+
 
 with tab4:
-    col1, col2, col3= st.columns((3,3,1), gap = 'small')
+    col1, col2, col3 = st.columns((3, 3, 1), gap='small')
 
     with col1:
         with st.container():
             st.markdown("<h3>OVERVIEW", unsafe_allow_html=True)
-            subcol1, subcol2 = st.columns([1,1])
+            subcol1, subcol2 = st.columns([1, 1])
             with subcol1:
                 with open("MainMap.html", "r") as file:
                     html_content = file.read()
-                components.html(html_content, height= 450)
+                components.html(html_content, height=450)
 
             with subcol2:
                 st.markdown("""<div style="text-align: justify;">
-                            This analysis integrates the City of Hamilton's building condition data with geographical locations, climate projections, and weather forecasting. 
-                            The objective is to inform future maintenance strategies and Facilities Maintenance & Life Cycle Renewal Investment Plans. 
-                            By combining data on building age, type, and use with climate projections, the aim is to establish a robust framework for decision-making. 
-                            The report investigates the impact of extreme weather events on the operations, maintenance, integrity, and performance of facilities. 
-                            It identifies vulnerabilities across City Wards and facilities, highlighting the main climate risks in Hamilton. 
-                            The study also assesses the specific building systems and types most affected by extreme weather, 
+                            This analysis integrates the City of Hamilton's building condition data with geographical locations, climate projections, and weather forecasting.
+                            The objective is to inform future maintenance strategies and Facilities Maintenance & Life Cycle Renewal Investment Plans.
+                            By combining data on building age, type, and use with climate projections, the aim is to establish a robust framework for decision-making.
+                            The report investigates the impact of extreme weather events on the operations, maintenance, integrity, and performance of facilities.
+                            It identifies vulnerabilities across City Wards and facilities, highlighting the main climate risks in Hamilton.
+                            The study also assesses the specific building systems and types most affected by extreme weather,
                             providing insights into the typical impacts on buildings and services during weather emergencies.
-                </div>""", unsafe_allow_html=True)              
+                </div>""", unsafe_allow_html=True)
 
-        
         # Key Objectives/Goals
-        st.markdown("<h3>KEY O", unsafe_allow_html=True)
-        st.markdown("""<div style="text-align: justify;">
+        st.markdown("<h3>KEY OBJECTIVES", unsafe_allow_html=True)
+        st.markdown("""<div font-size="10"; style="text-align: justify;">
         <ul><strong> Evaluate the Utility of Existing Building Condition Data:</strong> Assess the value of existing building condition data in conjunction with current climate data to establish Facilities Maintenance & Life Cycle renewal frameworks.
         <ul><strong> Assess the Impact of Extreme Weather Events:</strong> Investigate how extreme weather events affect facility operations, maintenance, and performance.
         <ul><strong> Identify Vulnerable City Wards and Facilities:</strong> Pinpoint City Wards and facilities at risk of climate change in Hamilton.
@@ -574,58 +695,122 @@ with tab4:
         <ul><strong> Evaluate Risks During Weather Emergencies:</strong> Assess the risks posed to different building types and services during weather emergencies.
         </div>""", unsafe_allow_html=True)
     with col2:
-        st.markdown("<h3>FACILITIES MAINTENANCE FRAMEWORK", unsafe_allow_html=True)
+        st.markdown("<h3>FACILITIES MAINTENANCE FRAMEWORK",
+                    unsafe_allow_html=True)
         with st.container():
-            st.image("images/Framework.png", caption="Weather Analysis Framework", width=400,)
+            st.image("images/Framework.png",
+                     caption="Weather Analysis Framework", width=400,)
 
     with col3:
-                # Create a simple legend for asset types and their colors
+        # Create a simple legend for asset types and their colors
         with st.expander("## Asset Type Legend"):
             for asset_type, color in asset_type_color_map.items():
                 # Use HTML to display the color alongside the asset type
-                st.markdown(f"<div style='display: flex; align-items: center;'><div style='width: 20px; height: 20px; background-color: {color}; margin-right: 10px;'></div>{asset_type}</div>", unsafe_allow_html=True)
+                st.markdown(f"<div style='display: flex; align-items: center;'><div style='width: 20px; height: 20px; background-color: {
+                            color}; margin-right: 10px;'></div>{asset_type}</div>", unsafe_allow_html=True)
 with tab5:
-    st.write('Hey')
+    df = pd.read_excel('data_20240308_combined_v2.xlsx', sheet_name='raw')
+    df['Maintenance Types'] = df['Maintenance Types'].apply(
+        lambda x: x.split(', '))
+    df['Weather Condition'] = df['Weather Condition'].apply(
+        lambda x: x.split(', '))
 
-    # df = pd.read_excel('data_20240308_combined_v2.xlsx', sheet_name='raw')
-    # df['Maintenance Types'] = df['Maintenance Types'].apply(lambda x: x.split(', '))
-    # df['Weather Condition'] = df['Weather Condition'].apply(lambda x: x.split(', '))
+    # Convert 'Asset Date Built' to datetime format
+    df['Asset Date Built'] = pd.to_datetime(df['Asset Date Built'])
 
-    # # Convert 'Asset Date Built' to datetime format
-    # df['Asset Date Built'] = pd.to_datetime(df['Asset Date Built'])
+    # Calculate the current age
+    current_date = dt.now()
+    df['Asset Age'] = current_date - df['Asset Date Built']
 
-    # # Calculate the current age
-    # current_date = dt.now()
-    # df['Asset Age'] = current_date - df['Asset Date Built']
+    # Extract the age in years, days, etc.
+    df['Asset Age Years'] = df['Asset Age'].dt.days // 365
+    df['Asset Date Built'] = df['Asset Date Built'].apply(lambda x: str(x))
+    st.markdown(
+        '<h2>Distribution by Asset Type</h3>', unsafe_allow_html=True)
 
-    # # Extract the age in years, days, etc.
-    # df['Asset Age Years'] = df['Asset Age'].dt.days // 365
-    # df['Asset Date Built'] = df['Asset Date Built'].apply(lambda x: str(x))
+    col1, col2, col3 = st.columns([2, 2, 1], gap='large')
 
-    # # Sidebar with filter options
-    # # st.sidebar.header('Filter Options')
-    # selected_maintenance_type = st.selectbox('Select Maintenance Type', df['Maintenance Types'].explode().unique())
-    # selected_weather_condition = st.selectbox('Select Weather Condition', df['Weather Condition'].explode().unique())
+    with col1:
+        # Explode the lists in 'maintenance_type' and 'weather_type' columns
+        df_exploded = df.explode('Weather Condition')
+        # Group by maintenance type and weather type, and count occurrences
+        trends_df = df_exploded.groupby(['Asset Type', 'Weather Condition'])[
+            'Weather Condition'].count().reset_index(name='count')
+        # print(trends_df.columns)
+        # Pivot the DataFrame to make 'Weather Condition' as columns
+        trends_pivot = trends_df.pivot(
+            index='Weather Condition', columns='Asset Type', values='count').fillna(0)
+        # Reset the index for a cleaner DataFrame
+        trends_pivot['total'] = trends_pivot.sum(axis=1)
+        trends_pivot.reset_index(inplace=True)
+        trends_pivot = trends_pivot.sort_values(
+            by='total', ascending=True)
+        # Stacked Bar Chart using Plotly Express
+        st.markdown(
+            '<h3>Weather Condition</h3>', unsafe_allow_html=True)
+        fig = px.bar(trends_pivot, x=trends_pivot.columns[1:], y='Weather Condition',
+                     labels={'value': 'Count',
+                             'Weather Condition': 'Weather Condition'},
+                     orientation='h',
+                     color_discrete_map=asset_type_color_map,
+                     height=600)
+        # Turn off the legend
+        fig.update_layout(showlegend=False)
+        fig.update_layout(
+            font=dict(size=5)
+        )
+        fig.update_layout(barmode='stack', xaxis=dict(
+            categoryorder='total descending'))
+        st.plotly_chart(fig, use_container_width=True)
 
-    # # Filter the dataframe based on user selection
-    # filtered_df = df[(df['Maintenance Types'].explode() == selected_maintenance_type) & 
-    #                 (df['Weather Condition'].explode() == selected_weather_condition)]
+        with st.expander("## Weather Condition Summary"):
+            st.table(
+                df_exploded.groupby('Weather Condition')['Asset Type'].count(
+                ).sort_values(ascending=False).reset_index(name='Number of Assets'))
 
-    # # Display summary statistics
-    # st.header('Summary Statistics')
-    # st.write(f"Selected Maintenance Type: {selected_maintenance_type}")
-    # st.write(f"Selected Weather Condition: {selected_weather_condition}")
-    # st.write(filtered_df.describe())
+        # Add labels inside the bars
+    with col2:
+        # Explode the lists in 'maintenance_type' and 'weather_type' columns
+        df_exploded = df.explode('Maintenance Types')
+        # Group by maintenance type and weather type, and count occurrences
+        trends_df = df_exploded.groupby(['Asset Type', 'Maintenance Types'])[
+            'Maintenance Types'].count().reset_index(name='count')
+        # print(trends_df.columns)
+        # Pivot the DataFrame to make 'Maintenance Types' as columns
+        trends_pivot = trends_df.pivot(
+            index='Maintenance Types', columns='Asset Type', values='count').fillna(0)
+        # Reset the index for a cleaner DataFrame
+        trends_pivot['total'] = trends_pivot.sum(axis=1)
+        trends_pivot.reset_index(inplace=True)
+        trends_pivot = trends_pivot.sort_values(
+            by='total', ascending=True)
+        # Stacked Bar Chart using Plotly Express
+        st.markdown(
+            '<h3>Maintenance Type</h3>', unsafe_allow_html=True)
+        fig = px.bar(trends_pivot, x=trends_pivot.columns[1:], y='Maintenance Types',
+                     labels={'value': 'Count',
+                             'Maintenance Types': 'Maintenance Types'},
+                     orientation='h',
+                     color_discrete_map=asset_type_color_map,
+                     height=600)
+        # Turn off the legend
+        fig.update_layout(showlegend=False)
+        fig.update_layout(
+            font=dict(size=5)
+        )
+        fig.update_layout(barmode='stack', xaxis=dict(
+            categoryorder='total descending'))
+        st.plotly_chart(fig, use_container_width=True)
+        with st.expander("## Maintenance Type Summary"):
+            st.table(
+                df_exploded.groupby('Maintenance Types')['Asset Type'].count(
+                ).sort_values(ascending=False).reset_index(name='Number of Assets'))
 
-    # # Visualize data
-    # st.header('Visualization')
-    # st.bar_chart(filtered_df['Asset Age Years'].value_counts().sort_index())
-
-    # # data = df.to_dict(orient='records')
-    # # with open('data2023.json', 'w') as fp:
-    # #     json.dump(data, fp, indent=4, sort_keys=True, default=str)
-
-
-
-
-# frequency and intensity of extreme weather events, such as tornadoes, floods, and heatwaves
+    with col3:
+        # Create a simple legend for asset types and their colors
+        # with st.expander("## Asset Type Legend"):
+        st.write("### Asset Type Legend")
+        for asset_type, color in asset_type_color_map.items():
+            # Use HTML to display the color alongside the asset type
+            st.markdown(f"<div style='display: flex; align-items: center;'><div style='width: 20px; height: 20px; background-color: {
+                        color}; margin-right: 10px;'></div>{asset_type}</div>", unsafe_allow_html=True)
