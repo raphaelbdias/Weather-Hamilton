@@ -844,7 +844,7 @@ with tab6:
                 "y": {
                         "field": "Current FCI",
                         "type": "quantitative",
-                },
+                    },
                 "color": {"field": "Indoor/Outdoor", "type": "nominal"},
                 "shape": {"field": "Indoor/Outdoor", "type": "nominal"},
             },
@@ -855,6 +855,20 @@ with tab6:
             theme=None,
             use_container_width=True
         )
+        with st.container():
+            sum_asset = gdf_assets.groupby('WARD')['Asset Type'].count(
+            ).reset_index(name='Asset Count').sort_values(by='Asset Count', ascending=False)
+            sum_asset['Percentage'] = round(sum_asset['Asset Count'] /
+                                            sum_asset['Asset Count'].sum()*100, 1)
+
+            sub1, sub2 = st.columns(
+                [2, 1], gap='small')
+            with sub1:
+                st.markdown(
+                    '<h3>Number of Assets by Ward</h3>', unsafe_allow_html=True)
+                st.bar_chart(sum_asset, y="Asset Count", x="WARD")
+            with sub2:
+                st.write(sum_asset)
 
     with col2:
         chart = {
@@ -867,7 +881,7 @@ with tab6:
                 "y": {
                         "field": "Current FCI",
                         "type": "quantitative",
-                },
+                    },
                 "color": {"field": "Likely End User Age Category", "type": "nominal"},
                 "shape": {"field": "Likely End User Age Category", "type": "nominal"},
             },
@@ -879,3 +893,15 @@ with tab6:
             theme=None,
             use_container_width=True
         )
+    # with st.container():
+    #     sum_asset = gdf_assets.groupby('WARD')['Asset Type'].count(
+    #     ).reset_index(name='Asset Count').sort_values(by='Asset Count', ascending=False)
+    #     sum_asset['Percentage'] = round(sum_asset['Asset Count'] /
+    #                                     sum_asset['Asset Count'].sum()*100, 1)
+
+    #     tab1, tab2 = st.tabs(
+    #         ["Bar Chart", "Raw Data"])
+    #     with tab1:
+    #         st.bar_chart(sum_asset, y="Asset Count", x="WARD")
+    #     with tab2:
+    #         st.write(sum_asset)
