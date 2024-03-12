@@ -55,14 +55,13 @@ data = pd.read_excel("Municipality Hamilton_Analysis.xlsx",
 st.set_page_config(layout="wide", initial_sidebar_state="collapsed",
                    page_title='Hamilton Fcaility Framework')
 
-tab1, tab2, tab3, tab4, tab5 = st.tabs(
-    ['Overview', 'Hamilton Climate', 'Facility Information', 'Report', 'Other'])
+tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs(
+    ['Overview', 'Hamilton Climate', 'Facility Information', 'Report', 'Other', 'Test'])
 
 ###########################################################
 # Section 1#
 ###########################################################
 with tab1:
-    st.write('Hey')
     # Streamlit app
     st.title("Climate Analysis of Hamilton")
 
@@ -814,3 +813,69 @@ with tab5:
             # Use HTML to display the color alongside the asset type
             st.markdown(f"<div style='display: flex; align-items: center;'><div style='width: 20px; height: 20px; background-color: {
                         color}; margin-right: 10px;'></div>{asset_type}</div>", unsafe_allow_html=True)
+
+with tab6:
+    # Calculate the IQR for "Current FCI" column
+    Q1 = df["Current FCI"].quantile(0.25)
+    Q3 = df["Current FCI"].quantile(0.75)
+    IQR = Q3 - Q1
+
+    # Define the lower and upper bounds for outliers
+    lower_bound = Q1 - 1.5 * IQR
+    upper_bound = Q3 + 1.5 * IQR
+
+    # Create a boolean mask to filter out outliers
+    outliers_mask = (df["Current FCI"] >= lower_bound) & (
+        df["Current FCI"] <= upper_bound)
+
+    # Apply the mask to your DataFrame
+    df_no_outliers = df[outliers_mask]
+
+    col1, col2 = st.columns(2, gap='large')
+    # Now, create the chart with the DataFrame excluding outliers
+    with col1:
+        chart = {
+            "mark": "point",
+            "encoding": {
+                    "x": {
+                        "field": "Asset Age Years",
+                        "type": "quantitative",
+                    },
+                "y": {
+                        "field": "Current FCI",
+                        "type": "quantitative",
+                },
+                "color": {"field": "Indoor/Outdoor", "type": "nominal"},
+                "shape": {"field": "Indoor/Outdoor", "type": "nominal"},
+            },
+        }
+        st.vega_lite_chart(
+            df_no_outliers,
+            chart,
+            theme=None,
+            use_container_width=True
+        )
+
+    with col2:
+        chart = {
+            "mark": "point",
+            "encoding": {
+                    "x": {
+                        "field": "Asset Age Years",
+                        "type": "quantitative",
+                    },
+                "y": {
+                        "field": "Current FCI",
+                        "type": "quantitative",
+                },
+                "color": {"field": "Likely End User Age Category", "type": "nominal"},
+                "shape": {"field": "Likely End User Age Category", "type": "nominal"},
+            },
+        }
+        st.vega_lite_chart(
+            df_no_outliers[["Likely End User Age Category",
+                            "Current FCI", "Asset Age Years"]],
+            chart,
+            theme=None,
+            use_container_width=True
+        )
